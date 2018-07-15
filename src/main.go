@@ -11,14 +11,16 @@ type IMessage interface {
 type Letter struct {
 	Body string
 	from Person
+	To   string
 }
 
 func (this Letter) From() IActor {
-	return this.from
+	return &this.from
 }
 
 type SendCommand struct {
 	Text string
+	To string
 }
 
 func (this SendCommand) From() IActor {
@@ -37,59 +39,80 @@ type Postman struct {
 func (this Postman) In(message IMessage) error {
 	switch message.(type) {
 	case Letter:
+		println("Postman process letter from: " + message.From().(*Person).Name)
 		return this.out(message)
 	default:
-		return fmt.Errorf("Unknown command %#v",message)
+		return fmt.Errorf("Unknown command %#v", message)
 	}
 }
 
-func (this Postman) SetOut(handler func(IMessage) error) error{
+func (this *Postman) SetOut(handler func(IMessage) error) error {
 	this.out = handler
 	return nil
 }
 
 type Person struct {
 	Name string
-	out func(IMessage) error
+	out  func(IMessage) error
 }
 
 func (this Person) In(message IMessage) error {
 	switch message.(type) {
 	case Letter:
 		letter := message.(Letter)
-		println(this.Name +" - recived message - "+ letter.Body)
+		println(this.Name + " - recived message - " + letter.Body)
 		return nil
 	case SendCommand:
 		command := message.(SendCommand)
-		return this.out(Letter{"From " +this.Name +" - "+command.Text, this})
+		return this.out(Letter{"From " + this.Name + " - " + command.Text, this, command.To})
 	default:
-		return fmt.Errorf("Unknown command %#v",message)
-		}
+		return fmt.Errorf("Unknown command %#v", message)
+	}
 }
 
-func (this Person) SetOut(handler func(IMessage) error) error{
-this.out = handler
-return nil
+func (this *Person) SetOut(handler func(IMessage) error) error {
+	this.out = handler
+	return nil
 }
 
 func main() {
-	var sender IActor = Person{"Foo", nil}
-	var receiver IActor = Person{"Bar", nil}
-	var postman IActor = Postman{ nil}
-	var sendLetterCommand IMessage = SendCommand{"Hello World!"}
+	var sender IActor = &Person{"Foo", nil}
+	var bar IActor = &Person{"Bar", nil}
+	var baz IActor = &Person{"Baz", nil}
+	var postman IActor = &Postman{nil}
 
 	sender.SetOut(func(message IMessage) error {
 		return postman.In(message)
 	})
 
-	receiver.SetOut(func(message IMessage) error {
+	bar.SetOut(func(message IMessage) error {
+		println("Do nothing")
+		return nil
+	})
+
+	baz.SetOut(func(message IMessage) error {
 		println("Do nothing")
 		return nil
 	})
 
 	postman.SetOut(func(message IMessage) error {
-		return receiver.In(message)
+		switch message.(type) {
+		case Letter:
+			to := message.(Letter).To
+			switch to {
+			case "Bar":
+				return bar.In(message)
+			case "Baz":
+				return baz.In(message)
+			default:
+				return fmt.Errorf("Dont now name " + to)
+			}
+		default:
+			return fmt.Errorf("Uknown message %#v",message)
+		}
 	})
-
-	sender.In(sendLetterCommand)
+	
+	sender.In(SendCommand{"Hello World!", "Bar"})
+	sender.In(SendCommand{"It's work! :)", "Baz"})
+	fmt.Scanln()
 }
