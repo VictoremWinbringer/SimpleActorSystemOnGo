@@ -35,7 +35,7 @@ func (this Person) In(message IMessage) error {
 		return this.outAttack(command)
 	case TakeDamageCommand:
 		command := message.(TakeDamageCommand)
-		fmt.Printf("Damaged by %s  value %d \n", command.From(), command.Value)
+		fmt.Printf("%s damaged by %s  value %d \n",this.Name, command.From(), command.Value)
 		this.takeDamage(command)
 		fmt.Printf("Current heals %d\n", this.heals)
 		return nil
