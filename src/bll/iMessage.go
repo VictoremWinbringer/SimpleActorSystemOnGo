@@ -1,5 +1,5 @@
 package bll
 
 type IMessage interface {
-	From() IActor
+	From() string
 }

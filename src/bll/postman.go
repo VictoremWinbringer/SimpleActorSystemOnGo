@@ -3,19 +3,33 @@ package bll
 import "fmt"
 
 type Postman struct {
-out func(IMessage) error
+	receivers map[string]IActor
 }
 
-func NewPostman(out func(IMessage) error)  Postman {
-	return Postman{out:out}
+func NewPostman(receivers map[string]IActor) Postman {
+	return Postman{receivers: receivers}
 }
 
 func (this Postman) In(message IMessage) error {
-switch message.(type) {
-case Letter:
-println("Postman process letter from: " + message.From().(*Person).Name)
-return this.out(message)
-default:
-return fmt.Errorf("Unknown command %#v", message)
+	switch message.(type) {
+	case Letter:
+		println("Postman process letter from: " + message.From())
+		return this.out(message)
+	default:
+		return fmt.Errorf("Unknown command %#v", message)
+	}
 }
+
+func (this Postman) out(message IMessage) error {
+	switch message.(type) {
+	case Letter:
+		to := message.(Letter).To
+		receiver, ok := this.receivers[to]
+		if !ok {
+			return fmt.Errorf("Dont now name " + to)
+		}
+		return receiver.In(message)
+	default:
+		return fmt.Errorf("Uknown message %#v", message)
+	}
 }

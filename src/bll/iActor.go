@@ -1,5 +1,5 @@
 package bll
 
 type IActor interface {
-In(message IMessage) error
+	In(message IMessage) error
 }

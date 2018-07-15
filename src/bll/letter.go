@@ -1,11 +1,11 @@
 package bll
 
 type Letter struct {
-	Body string
+	Body      string
 	Publisher Person
-	To   string
+	To        string
 }
 
-func (this Letter) From() IActor {
-	return &this.Publisher
+func (this Letter) From() string {
+	return this.Publisher.Name
 }

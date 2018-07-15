@@ -7,37 +7,24 @@ import (
 
 func main() {
 
-	var bar IActor = NewPerson("Bar", func(message IMessage) error {
-		println("Do nothing")
-		return nil
-	})
-	var baz IActor = NewPerson("Baz", func(message IMessage) error {
-		println("Do nothing")
-		return nil
-	})
-
-	var postman IActor = NewPostman(func(message IMessage) error {
-		switch message.(type) {
-		case Letter:
-			to := message.(Letter).To
-			switch to {
-			case "Bar":
-				return bar.In(message)
-			case "Baz":
-				return baz.In(message)
-			default:
-				return fmt.Errorf("Dont now name " + to)
-			}
-		default:
-			return fmt.Errorf("Uknown message %#v", message)
-		}
-	})
-
-	var sender IActor = NewPerson("Foo", func(message IMessage) error {
-		return postman.In(message)
-	})
-
-	sender.In(SendCommand{"Hello World!", "Bar"})
-	sender.In(SendCommand{"It's work! :)", "Baz"})
+	var bar IActor = NewPerson("Bar", make(map[string]IActor,0))
+	var baz IActor = NewPerson("Baz",make(map[string]IActor,0))
+	 postmanReceivers := make(map[string]IActor,0)
+	 postmanReceivers["Bar"] = bar
+	 postmanReceivers["Baz"] = baz
+	var postman IActor = NewPostman(postmanReceivers)
+	senderReceivers := make(map[string]IActor,0)
+	senderReceivers["postman"] = postman
+	var sender IActor = NewPerson("Foo",senderReceivers)
+	e:=sender.In(SendCommand{"Hello World!", "Bar"})
+   printError(e)
+ 	e = sender.In(SendCommand{"It's work! :)", "Baz"})
+	printError(e)
 	fmt.Scanln()
+}
+
+func printError(e error){
+	if e != nil {
+		println(e)
+	}
 }

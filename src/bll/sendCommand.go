@@ -1,9 +1,10 @@
 package bll
+
 type SendCommand struct {
-Text string
-To string
+	Text string
+	To   string
 }
 
-func (this SendCommand) From() IActor {
-return nil
+func (this SendCommand) From() string {
+	return ""
 }
