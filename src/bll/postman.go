@@ -6,8 +6,13 @@ type Postman struct {
 	receivers map[string]IActor
 }
 
-func NewPostman(receivers map[string]IActor) Postman {
-	return Postman{receivers: receivers}
+func NewPostman() Postman {
+	return Postman{receivers: make(map[string]IActor)}
+}
+
+func (this Postman) SetReceiver(receiver IActor, id string) error {
+	this.receivers[id] = receiver
+	return nil
 }
 
 func (this Postman) In(message IMessage) error {

@@ -1,2 +1,2 @@
 # SimpleActorSystemOnGo
-a simple system of actors on golang.
+a simple system of actors in golang with simple game logic
